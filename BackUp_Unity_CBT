@@ -1,0 +1,114 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class Eraser_Erase2 : MonoBehaviour
+{
+    
+    List<string> erasedTags = new List<string>();
+    List<int> groupinit = new List<int>() { 0, 0, 0, 0, 0 };
+    List<int> groupgoal = new List<int>() { 3, 3, 3, 3, 3 };
+    int k = 0;
+    int limit = 5;
+    List<int> erased = new List<int>() { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+    List<int> temp = new List<int>() { 3, 1, 1, 3, 1, 1, 2, 3, 3, 5 };
+    public float moveSpeed = 5f;
+
+
+    private void OnTriggerEnter(Collider other)
+    {
+        if (k < limit)
+        {
+            for (int i = 0; i < groupgoal[k]; i++)
+            {
+                int index = (k * groupgoal[k]) + i;
+                for (int j = 0; j < temp[index]; j++)
+                {
+                    if (other.CompareTag("text" + (index).ToString() + "_" + j.ToString()))
+                    {
+                        Destroy(other.gameObject);
+                        //erasedTags.Add(other.tag);
+                        erased[index]++;
+                    }
+                    // Check if all the testcloudtext objects have been erased
+
+                }
+                if (erased[index] >= temp[index])
+                {
+                    // Remove or disable the cloud object
+                    GameObject cloud = GameObject.FindWithTag("Cloud" + index.ToString());
+                    if (cloud != null)
+                    {
+                        Destroy(cloud);
+                        groupinit[k]++;
+                        // or cloud.SetActive(false);
+                    }
+                }
+                if (groupinit[k] == groupgoal[k])
+                {
+                    
+                    k++;
+                    StartCoroutine(MoveGroup(k));
+                }
+
+
+            }
+        }
+
+
+    }
+    private IEnumerator MoveGroup(int index)
+    {
+        GameObject groupObject = GameObject.FindGameObjectWithTag("Group" + index.ToString());
+
+        if (groupObject != null)
+        {
+            Vector3 startPosition = groupObject.transform.position;
+            Vector3 targetPosition = transform.position;
+            float elapsedTime = 0f;
+
+            while (elapsedTime < moveSpeed)
+            {
+                elapsedTime += Time.deltaTime;
+                float t = Mathf.Clamp01(elapsedTime / moveSpeed);
+
+                groupObject.transform.position = Vector3.Lerp(startPosition, targetPosition, t);
+
+                yield return null;
+            }
+
+            Debug.Log("Finished moving group: " + index);
+        }
+        else
+        {
+            Debug.LogWarning("Group object not found for index: " + index);
+        }
+    }
+
+
+}
+
+
+
+
+
+
+/*
+if (other.CompareTag("text2_1"))
+{
+    Destroy(other.gameObject);
+    erasedTags.Add(other.tag);
+}
+
+// Check if all the testcloudtext objects have been erased
+if (erasedTags.Contains("text2_1"))
+{ 
+    // Remove or disable the cloud object
+    GameObject cloud = GameObject.FindWithTag("Cloud2");
+    if (cloud != null)
+    {
+        Destroy(cloud);
+        // or cloud.SetActive(false);
+    }
+}
+*/
