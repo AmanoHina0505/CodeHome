@@ -1,0 +1,194 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using System;
+using System.IO;
+
+public class Eraser_Erase2 : MonoBehaviour
+{
+
+    List<string> erasedTags = new List<string>();
+    List<int> groupinit = new List<int>() { 0, 0, 0, 0, 0 };
+    List<int> groupgoal = new List<int>() { 3, 3, 3, 3, 3 };
+    int k = 0;
+    int limit = 5;
+    List<int> erased = new List<int>() { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+    List<int> temp = new List<int>() { 3, 1, 1, 3, 1, 1, 3, 1, 3, 3, 1, 1, 1, 1, 1 };
+    public float moveSpeed = 5f;
+    private GameObject fireworkObject;
+    public GameObject cloudEraserPrefab;
+    public float fadeOutDuration = 1.0f; // Adjust the duration as needed
+
+    private void OnTriggerEnter(Collider other)
+    {
+        if (k < limit)
+        {
+            for (int i = 0; i < groupgoal[k]; i++)
+            {
+                int index = (k * groupgoal[k]) + i;
+                for (int j = 0; j < temp[index]; j++)
+                {
+                    if (other.CompareTag("text" + (index).ToString() + "_" + j.ToString()))
+                    {
+                        erasedTags.Add(other.tag);
+                        erased[index]++;
+                    }
+                    // Check if all the testcloudtext objects have been erased
+
+                }
+                if (erased[index] >= temp[index])
+                {
+                    // Remove or disable the cloud object
+                    GameObject cloud = GameObject.FindWithTag("Cloud" + index.ToString());
+                    if (cloud != null)
+                    {
+                        Destroy(cloud);
+                        groupinit[k]++;
+                        // or cloud.SetActive(false);
+                    }
+                }
+                if (groupinit[k] == groupgoal[k])
+                {
+
+                    k++;
+                    StartCoroutine(MoveGroup(k));
+                }
+
+
+            }
+        }
+        else
+        {
+            /*GameObject fireworkobject = GameObject.FindGameObjectWithTag("Firework");
+            fireworkObject.SetActive(true);*/
+            StartCoroutine(MoveGroup(6));
+        }
+
+
+    }
+
+    private IEnumerator MoveGroup(int index)
+    {
+        GameObject groupObject = GameObject.FindGameObjectWithTag("Group" + index.ToString());
+
+        if (groupObject != null)
+        {
+            Vector3 startPosition = groupObject.transform.position;
+            /* Vector3 targetPosition = Vector3.zero; // Initialize target position as zero*/
+
+
+            Vector3 targetPosition = transform.position;
+            // Find the previous group object
+            GameObject previousGroup = GameObject.FindGameObjectWithTag("Group" + (index - 1).ToString());
+            if (previousGroup != null)
+            {
+                targetPosition = previousGroup.transform.position; // Set target position as the previous group's position
+            }
+
+            float elapsedTime = 0f;
+
+            while (elapsedTime < moveSpeed)
+            {
+                elapsedTime += Time.deltaTime;
+                float t = Mathf.Clamp01(elapsedTime / moveSpeed);
+
+                groupObject.transform.position = Vector3.Lerp(startPosition, targetPosition, t);
+
+                yield return null;
+            }
+        }
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+    /*   public class ExperimentTimeRecorder : MonoBehaviour
+   {
+       void Start()
+           {
+               // Define the paths for the text files
+               string timingFilePath = Path.Combine(Application.dataPath, "D\timing.txt");
+               string expFilePath = Path.Combine(Application.dataPath, "D\Exp.txt");
+
+               try
+               {
+                   // Create and write to timing.txt
+                   using (StreamWriter timingWriter = new StreamWriter(timingFilePath))
+                   {
+                       DateTime currentDateTime = DateTime.Now;
+                       string formattedDateTime = currentDateTime.ToString("dddd, dd MMMM yyyy HH:mm:ss");
+                       timingWriter.WriteLine("Rest date and time: " + formattedDateTime + "\n");
+                   }
+
+                   Debug.Log("timing.txt created and written successfully at: " + timingFilePath);
+               }
+               catch (IOException e)
+               {
+                   Debug.LogError("Error writing to timing.txt: " + e.Message);
+               }
+
+               try
+               {
+                   // Create and write to Exp.txt
+                   using (StreamWriter expWriter = new StreamWriter(expFilePath))
+                   {
+                       DateTime currentDateTime = DateTime.Now;
+                       string formattedDateTime = currentDateTime.ToString("dddd, dd MMMM yyyy HH:mm:ss");
+                       expWriter.WriteLine("Experiment date and time: " + formattedDateTime + "\n");
+                   }
+
+                   Debug.Log("Exp.txt created and written successfully at: " + expFilePath);
+               }
+               catch (IOException e)
+               {
+                   Debug.LogError("Error writing to Exp.txt: " + e.Message);
+               }
+           }
+   }
+*/
+
+
+/*    public class CloudEraser : MonoBehaviour
+    {
+        public float erasingDuration = 2f; // Time it takes to erase the cloud
+        public int slices = 5; // Number of slices for erasing
+
+        private Material cloudMaterial;
+        private float startTime;
+        private float sliceDuration;
+
+        private void Start()
+        {
+            cloudMaterial = GetComponent<Renderer>().material;
+            startTime = Time.time;
+            sliceDuration = erasingDuration / slices; // Calculate duration for each slice
+        }
+
+        private void Update()
+        {
+            float erasingProgress = (Time.time - startTime) / erasingDuration;
+            int currentSlice = Mathf.FloorToInt(erasingProgress * slices);
+
+            // Adjust the shader properties to make the cloud gradually disappear slice by slice
+            cloudMaterial.SetFloat("_ErasingProgress", (float)currentSlice / slices);
+
+            if (currentSlice >= slices)
+            {
+                // The cloud has been completely erased, destroy the game object
+                Destroy(gameObject);
+            }
+        }
+    }
+    */
+
+
+
+
