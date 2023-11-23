@@ -1,0 +1,35 @@
+using System.Collections;
+using UnityEngine;
+
+public class Dissolve : MonoBehaviour
+{
+    private Material dissolveMaterial;
+    public bool hideObject;
+    public float dissolveValue = 2f;
+
+    void Start()
+    {
+        dissolveMaterial = GetComponent<Renderer>().material;
+    }
+
+    private void OnTriggerEnter(Collider other)
+    {
+        if (other.CompareTag("CloudEraser"))
+        {
+            hideObject = !hideObject;
+            StartCoroutine(ChangeDissolveValue(hideObject ? 1.25f : -0.25f));
+        }
+    }
+
+    private IEnumerator ChangeDissolveValue(float targetValue)
+    {
+        float currentDissolveValue = dissolveMaterial.GetFloat("_DissolveValue");
+
+        while (currentDissolveValue != targetValue)
+        {
+            currentDissolveValue = Mathf.MoveTowards(currentDissolveValue, targetValue, dissolveValue * Time.deltaTime);
+            dissolveMaterial.SetFloat("_DissolveValue", currentDissolveValue);
+            yield return null;
+        }
+    }
+}
