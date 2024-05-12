@@ -1,0 +1,60 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+/*
+public class ChangeAlpha : MonoBehaviour
+{
+    // Start is called before the first frame update
+    private Renderer rend;
+
+    // Start is called before the first frame update
+    void Start()
+    {
+        // Get the Renderer component of the GameObject
+        rend = GetComponent<Renderer>();
+        if (rend == null)
+        {
+            Debug.LogError("Renderer component not found on the GameObject.");
+            return;
+        }
+    }
+
+    // Function to change the color and transparency of the GameObject
+    public void ChangeColorAndTransparency(Color newColor, float alphaValue)
+    {
+        // Set the color with the specified alpha value
+        newColor.a = alphaValue;
+
+        // Apply the new color with the adjusted alpha value to the material
+        rend.material.color = newColor;
+    }
+
+
+}
+*/
+
+
+public class ChangeAlpha : MonoBehaviour
+{
+    public Material material; // Assign your Liberation Sans SDF Material here in the Unity Editor
+
+    void Start()
+    {
+        // Ensure the material is assigned
+        if (material != null)
+        {
+            // Get the current color
+            Color currentColor = material.color;
+
+            // Set a new alpha value (e.g., 0.5 for half transparency)
+            float newAlpha = 0f; // Change this value as needed
+
+            // Assign the new color with the adjusted alpha
+            material.color = new Color(currentColor.r, currentColor.g, currentColor.b, newAlpha);
+        }
+        else
+        {
+            Debug.LogError("Material not assigned!");
+        }
+    }
+}
