@@ -1,0 +1,67 @@
+using UnityEngine;
+
+public class punching_bag : MonoBehaviour
+{
+    public float swingForce = 10f;
+    private Rigidbody bag;
+    public float damping = 0.9f;
+    private bool isSwinging = false;
+    public AudioClip punchingsound;
+
+    public AudioSource audiosource;
+
+    void Start()
+    {
+        bag = GetComponent<Rigidbody>();
+        var joint = gameObject.AddComponent<ConfigurableJoint>();
+        joint.connectedBody = null; // Assuming it's connected to a fixed point in the world.
+        joint.xMotion = ConfigurableJointMotion.Limited;
+        joint.zMotion = ConfigurableJointMotion.Limited;
+        joint.yMotion = ConfigurableJointMotion.Locked;
+
+        SoftJointLimit limit = new SoftJointLimit();
+        limit.limit = 1f; // Set this to control the max swing distance.
+        joint.linearLimit = limit;
+        /*bag.constraints = RigidbodyConstraints.FreezePositionY;*/
+        
+
+        audiosource = GetComponent<AudioSource>();
+
+
+
+    }
+
+    void Update()
+    {
+        if (isSwinging)
+        {
+            // Reduce the swing gradually using damping
+            bag.velocity *= damping;
+            if (bag.velocity.magnitude < 0.1f)
+            {
+                isSwinging = false;
+            }
+        }
+    }
+
+    private void OnCollisionEnter(Collision collision)
+    {
+        if (collision.gameObject.CompareTag("hand"))
+        {
+            Vector3 handPosition = collision.gameObject.transform.position;
+            Vector3 bagPosition = transform.position;
+            Vector3 swingDir = handPosition - bagPosition;
+            swingDir.Normalize();
+
+            //play sound effect
+            audiosource.clip = punchingsound;
+            audiosource.Play();
+
+            // Apply the swing force to the bag
+            bag.AddForce(swingDir * swingForce, ForceMode.Impulse);
+            isSwinging = true;
+        }
+    }
+}
+
+
