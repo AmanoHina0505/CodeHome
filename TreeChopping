@@ -1,0 +1,96 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class TreeChopping : MonoBehaviour
+{
+    public float rotationSpeed = 2.0f;
+    private bool isTouching = false;
+    private Vector3 previousHandPosition;
+    private float initialZRotation;
+    private int chopCount = 0;
+    private float initialDirectionSign;
+    private Transform handTransform;
+
+    void Update()
+    {
+        if (isTouching)
+        {
+            // Get the current hand position
+            Vector3 currentHandPosition = handTransform.position;
+
+            // Calculate the movement direction of the hand
+            Vector3 handMovementDirection = currentHandPosition - previousHandPosition;
+
+            // Check if there is significant movement
+            if (handMovementDirection.magnitude > 0.01f)
+            {
+                // Calculate the angle to rotate the tree based on hand movement
+                float angleToRotate = Mathf.Atan2(handMovementDirection.y, handMovementDirection.x) * Mathf.Rad2Deg;
+
+                // Rotate the tree based on the angleToRotate
+                transform.Rotate(0, 0, -angleToRotate * rotationSpeed * Time.deltaTime);
+
+                // Update the previous hand position
+                previousHandPosition = currentHandPosition;
+
+                // Check and clamp the Z-axis rotation
+                ClampAndCheckZRotation();
+            }
+        }
+    }
+
+    void ClampAndCheckZRotation()
+    {
+        Vector3 currentRotation = transform.eulerAngles;
+        if (currentRotation.z > 180f) currentRotation.z -= 360f; // Convert from 0-360 to -180 to 180 range
+
+        float targetRotation = initialZRotation + (chopCount + 1) * 25f * initialDirectionSign; // Determine target rotation based on initial direction and chop count
+        targetRotation = Mathf.Min(100f, targetRotation);
+
+        // Clamp the Z rotation
+        currentRotation.z = Mathf.Clamp(currentRotation.z, initialZRotation, targetRotation);
+        transform.eulerAngles = new Vector3(currentRotation.x, currentRotation.y, currentRotation.z);
+
+        // Check if the rotation exceeds 100 degrees and reset if necessary
+        if (Mathf.Abs(currentRotation.z) == 100f)
+        {
+            ResetRotation();
+        }
+    }
+
+    void ResetRotation()
+    {
+        transform.eulerAngles = new Vector3(transform.eulerAngles.x, transform.eulerAngles.y, 0);
+        chopCount = 0;
+        initialZRotation = 0; // Reset initial rotation
+        initialDirectionSign = 1; // Reset direction sign
+    }
+
+    void OnTriggerEnter(Collider other)
+    {
+        if (other.gameObject.CompareTag("hand"))
+        {
+            isTouching = true;
+            handTransform = other.transform; // Store the hand transform for position tracking
+            // Initialize the previous hand position when touch starts
+            previousHandPosition = handTransform.position;
+
+            // Save the initial Z rotation of the tree when touching starts
+            initialZRotation = transform.eulerAngles.z;
+
+            // Determine the initial direction of the tree based on its rotation
+            initialDirectionSign = Mathf.Sign(initialZRotation);
+        }
+    }
+
+    void OnTriggerExit(Collider other)
+    {
+        if (other.gameObject.CompareTag("hand"))
+        {
+            isTouching = false;
+            // Increase chop count
+            chopCount = Mathf.Clamp(chopCount + 1, 0, 4);
+        }
+    }
+}
