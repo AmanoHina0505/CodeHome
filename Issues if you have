@@ -1,3 +1,7 @@
 Issues if you have : 
 1. VR sight light is whole black:
 Go to OVR Camera RIG, CenterEyeAnchor, Background Type: Sky box
+2. Basic Set up for VR avatar?
+https://www.youtube.com/watch?v=WKfyeCV5f44
+3. How to hide the virtual Hand?
+OVRCamera RIG -- OVRInteractionComprehensive -- OVRLeft/Right Hand Visual -- OPENXRLeft/Right Hand -- Left/Right hand then click the button on Spector Sight.
