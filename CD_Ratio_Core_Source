@@ -1,0 +1,64 @@
+using UnityEngine;
+
+public class CD_Control : MonoBehaviour
+{
+    [Header("Avatar Joints")]
+    public Transform rightUpperArm;
+    public Transform leftUpperArm;
+
+    [Header("C/D Ratio Settings (Per Arm)")]
+    [Range(0.1f, 2.0f)] public float rightArmCDRatio = 1.0f;
+    [Range(0.1f, 2.0f)] public float leftArmCDRatio = 1.0f;
+
+    [Header("Calibration")]
+    [Tooltip("按下此键，将当前姿态设为‘中心点’。请在手臂自然下垂时按下。")]
+    public KeyCode calibrateKey = KeyCode.Space;
+
+    private Quaternion rUpperBase, lUpperBase;
+    private bool isCalibrated = false;
+
+    void Start()
+    {
+        InitialCache();
+    }
+
+    void Update()
+    {
+        if (Input.GetKeyDown(calibrateKey))
+        {
+            InitialCache();
+            Debug.Log("校准成功：已将当前姿态设为 C/D Ratio 的起始原点");
+        }
+    }
+
+    void InitialCache()
+    {
+        if (rightUpperArm) rUpperBase = rightUpperArm.localRotation;
+        if (leftUpperArm) lUpperBase = leftUpperArm.localRotation;
+        isCalibrated = true;
+    }
+
+    void LateUpdate()
+    {
+        if (!isCalibrated) return;
+
+        ApplyCD(rightUpperArm, rUpperBase, rightArmCDRatio);
+        ApplyCD(leftUpperArm, lUpperBase, leftArmCDRatio);
+    }
+
+    void ApplyCD(Transform joint, Quaternion baseLocal, float cdRatio)
+    {
+        if (joint == null) return;
+
+        Quaternion currentLocal = joint.localRotation;
+        Quaternion delta = Quaternion.Inverse(baseLocal) * currentLocal;
+
+        Quaternion scaledDelta = Quaternion.SlerpUnclamped(
+            Quaternion.identity,
+            delta,
+            cdRatio
+        );
+
+        joint.localRotation = baseLocal * scaledDelta;
+    }
+}
