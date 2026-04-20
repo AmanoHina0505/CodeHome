@@ -1,0 +1,3 @@
+Issues if you have : 
+1. VR sight light is whole black:
+Go to OVR Camera RIG, CenterEyeAnchor, Background Type: Sky box
