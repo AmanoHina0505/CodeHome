@@ -1,0 +1,175 @@
+Use a world-space Unity UI board with Meta Interaction SDK ray support. Your existing CD_Control component already
+  exposes the ratio fields, so the board only needs to call setters.
+
+  1. Create The Script
+  Create Assets/C#/CDRatioBoard.cs:
+
+  using TMPro;
+  using UnityEngine;
+  using UnityEngine.UI;
+
+  public class CDRatioBoard : MonoBehaviour
+  {
+      [SerializeField] private CD_Control cdControl;
+      [SerializeField] private TMP_Text leftValueText;
+      [SerializeField] private TMP_Text rightValueText;
+      [SerializeField] private Color selectedColor = new Color(0.2f, 0.8f, 1f);
+      [SerializeField] private Color normalColor = Color.white;
+
+      private Button[] leftButtons;
+      private Button[] rightButtons;
+
+      void Start()
+      {
+          leftButtons = transform.Find("LeftColumn").GetComponentsInChildren<Button>();
+          rightButtons = transform.Find("RightColumn").GetComponentsInChildren<Button>();
+          Refresh();
+      }
+
+      public void SetLeftRatio(float ratio)
+      {
+          cdControl.leftArmCDRatio = ratio;
+          Refresh();
+      }
+
+      public void SetRightRatio(float ratio)
+      {
+          cdControl.rightArmCDRatio = ratio;
+          Refresh();
+      }
+
+      public void Recalibrate()
+      {
+          cdControl.RequestCalibration();
+      }
+
+      void Refresh()
+      {
+          leftValueText.text = $"Left: {cdControl.leftArmCDRatio:0.0}";
+          rightValueText.text = $"Right: {cdControl.rightArmCDRatio:0.0}";
+
+          UpdateColors(leftButtons, cdControl.leftArmCDRatio);
+          UpdateColors(rightButtons, cdControl.rightArmCDRatio);
+      }
+
+      void UpdateColors(Button[] buttons, float selectedRatio)
+      {
+          foreach (Button button in buttons)
+          {
+              float ratio = float.Parse(button.GetComponentInChildren<TMP_Text>().text);
+              ColorBlock colors = button.colors;
+              colors.normalColor = Mathf.Approximately(ratio, selectedRatio)
+                  ? selectedColor
+                  : normalColor;
+              button.colors = colors;
+          }
+      }
+  }
+
+  2. Create The Board
+
+  1. Open Assets/Scenes/Pseudo Haptic.unity.
+  2. Right-click Hierarchy.
+  3. Select UI > Canvas.
+  4. Rename it CDRatioBoard.
+  5. Set the Canvas Render Mode to World Space.
+  6. Set its Rect Transform:
+      - Width: 900
+      - Height: 600
+      - Scale: 0.002, 0.002, 0.002
+
+  7. Position it approximately two meters in front of the starting position, around chest height.
+  8. Rotate it so its front faces the player.
+
+  Add a UI > Panel under the canvas as the background. Use a dark, mostly opaque color.
+
+  3. Add Titles
+  Add TextMeshPro text objects:
+
+  C/D Ratio Control
+  Left Arm
+  Right Arm
+  Left: 1.0
+  Right: 1.0
+
+  Name the last two:
+
+  - LeftValueText
+  - RightValueText
+
+  4. Create Columns
+
+  1. Create two empty Rect Transform objects under CDRatioBoard.
+  2. Name them exactly:
+      - LeftColumn
+      - RightColumn
+
+  3. Add Vertical Layout Group to each column.
+  4. Under each column, create six UI > Button - TextMeshPro objects.
+  5. Set their visible labels to:
+
+  0.3
+  0.6
+  1.0
+  1.3
+  1.6
+  2.0
+
+  Make each button large enough for easy VR targeting, such as 180 x 55.
+
+  5. Add The Board Controller
+
+  1. Add CDRatioBoard to the root CDRatioBoard Canvas object.
+  2. Drag your avatar’s existing CD_Control component into Cd Control.
+  3. Drag LeftValueText and RightValueText into their matching fields.
+
+  6. Connect Each Button
+  For every button:
+
+  1. In the Inspector, find Button > On Click().
+  2. Press +.
+  3. Drag the root CDRatioBoard Canvas into the object field.
+  4. For left-column buttons, select:
+     CDRatioBoard > SetLeftRatio(float)
+
+  5. For right-column buttons, select:
+     CDRatioBoard > SetRightRatio(float)
+
+  6. Type the matching number into the float field.
+
+  For example, the left 0.6 button calls SetLeftRatio(0.6).
+
+  7. Add Recalibration
+  Add one more button named RecalibrateButton with visible text:
+
+  Recalibrate Neutral Pose
+
+  Connect its On Click() event to:
+
+  CDRatioBoard > Recalibrate()
+
+  Stand naturally before pressing it.
+
+  8. Enable VR Clicking
+  Your installed Meta SDK includes PointableCanvasModule.
+
+  1. Select the scene’s EventSystem.
+  2. Add component Pointable Canvas Module.
+  3. Remove or disable Standalone Input Module if both modules compete for input.
+  4. Select the Canvas.
+  5. Use Meta XR Interaction SDK’s Ray Canvas quick-action wizard if it appears in the Inspector or Meta XR menu.
+  6. Confirm your rig contains active RayInteractor components for controller rays or hand rays.
+
+  Your current scene already contains Meta interaction rig assets, so this should reuse them.
+
+  9. Test
+
+  1. Enter Play Mode with Quest Link first.
+  2. Point a controller ray at a button.
+  3. Click using the trigger.
+  4. Confirm the selected button changes color and the displayed ratio changes.
+  5. Build the APK and repeat on Quest 3.
+
+  Start with 1.0 on both arms. Then test one arm at 0.6 and the other at 1.6 to make the difference obvious.
+
+  Meta reference: OVRBody class (https://developers.meta.com/horizon/reference/unity/v69/class_o_v_r_body)
